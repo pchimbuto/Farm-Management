@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Max's Farm Manager - Malawi</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --earth-dark: #2d5016;
+            --earth-main: #4a7c2c;
+            --earth-light: #6b9d47;
+            --earth-pale: #e8f3e0;
+            --soil: #8b6f47;
+            --sun: #f4a62a;
+            --warning: #e85d04;
+            --water: #4895ef;
+            --grain: #ffd23f;
+            --bg: #fafaf8;
+            --surface: #ffffff;
+            --text: #1a1a1a;
+            --text-muted: #666666;
+            --border: #e0e0de;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Lexend', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: var(--earth-dark);
+            color: white;
+            padding: 2rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .farm-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .season-badge {
+            background: var(--sun);
+            color: var(--earth-dark);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+        
+        .nav-menu {
+            list-style: none;
+            padding: 1.5rem 0;
+        }
+        
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 2rem;
+            max-width: calc(100vw - 280px);
+        }
+        
+        /* Header */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--earth-dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+        
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px var(--shadow);
+            transition: all 0.2s;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 12px var(--shadow);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .stat-icon.revenue { background: linear-gradient(135deg, var(--earth-light), var(--earth-main)); }
+        .stat-icon.cost { background: linear-gradient(135deg, var(--warning), #d84a05); }
+        .stat-icon.profit { background: linear-gradient(135deg, var(--sun), #e69500); }
+        .stat-icon.yield { background: linear-gradient(135deg, var(--grain), #f4c531); }
+        
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+        }
+        
+        .stat-change {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .stat-change.positive { color: var(--earth-main); }
+        .stat-change.negative { color: var(--warning); }
+        
+        /* Field Cards */
+        .field-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .field-card {
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .field-card:hover {
+            box-shadow: 0 6px 16px var(--shadow);
+            transform: translateY(-2px);
+        }
+        
+        .field-header {
+            padding: 1.25rem;
+            background: linear-gradient(135deg, var(--earth-light), var(--earth-main));
+            color: white;
+        }
+        
+        .field-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .field-crop {
+            opacity: 0.9;
+            font-size: 0.875rem;
+        }
+        
+        .field-body {
+            padding: 1.25rem;
+        }
+        
+        .field-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .field-stat:last-child {
+            border-bottom: none;
+        }
+        
+        .field-stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        
+        .field-stat-value {
+            font-weight: 600;
+            font-family: 'DM Mono', monospace;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Lexend', sans-serif;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--earth-main);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--earth-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+        
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--earth-pale);
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        /* Forms */
+        .form-grid {
+            display: grid;
+            gap: 1.5rem;
+            max-width: 800px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+        
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 0.875rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Lexend', sans-serif;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: var(--surface);
+        }
+        
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--earth-main);
+            box-shadow: 0 0 0 3px rgba(74, 124, 44, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--surface);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--earth-dark);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: var(--earth-pale);
+            color: var(--earth-dark);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        /* Tables */
+        .table-container {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table thead {
+            background: var(--earth-pale);
+        }
+        
+        .data-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--earth-dark);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .data-table tbody tr:hover {
+            background: var(--earth-pale);
+        }
+        
+        /* Charts placeholder */
+        .chart-container {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            min-height: 300px;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--earth-dark);
+        }
+        
+        /* Utilities */
+        .hidden {
+            display: none !important;
+        }
+        
+        .mt-2 { margin-top: 2rem; }
+        .mb-2 { margin-bottom: 2rem; }
+        
+        .text-success {
+            color: var(--earth-main);
+            font-weight: 600;
+        }
+        
+        .text-warning {
+            color: var(--warning);
+            font-weight: 600;
+        }
+        
+        .currency {
+            font-family: 'DM Mono', monospace;
+        }
+        
+        /* Offline indicator */
+        .offline-badge {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: var(--warning);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .offline-badge.show {
+            display: flex;
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+        
+        .empty-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        
+        .empty-text {
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100vw;
+                padding: 1rem;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="farm-name">🌾 Max's Farm</div>
+                <span class="season-badge" id="currentSeason">2024/25 Season</span>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a class="nav-link active" data-page="dashboard">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-page="fields">
+                        <span class="nav-icon">🌱</span>
+                        Fields & Crops
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-page="inputs">
+                        <span class="nav-icon">💰</span>
+                        Inputs & Costs
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-page="harvest">
+                        <span class="nav-icon">🚜</span>
+                        Harvest & Yield
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-page="sales">
+                        <span class="nav-icon">📈</span>
+                        Sales & Revenue
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-page="analytics">
+                        <span class="nav-icon">💡</span>
+                        Analytics
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-page="export">
+                        <span class="nav-icon">📤</span>
+                        Export Data
+                    </a>
+                </li>
+            </ul>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="page-dashboard" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Farm Overview</h1>
+                    <p class="page-subtitle">2024/25 Growing Season Summary</p>
+                </div>
+                
+                <div class="card-grid">
+                    <div class="card stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon revenue">💵</div>
+                            <div>
+                                <div class="stat-label">Total Revenue</div>
+                            </div>
+                        </div>
+                        <div class="stat-value currency" id="totalRevenue">MK 0</div>
+                        <div class="stat-change positive" id="revenueChange">
+                            <span>↗</span> Start recording sales
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon cost">💸</div>
+                            <div>
+                                <div class="stat-label">Total Costs</div>
+                            </div>
+                        </div>
+                        <div class="stat-value currency" id="totalCosts">MK 0</div>
+                        <div class="stat-change" id="costsChange">
+                            Track your inputs
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon profit">⭐</div>
+                            <div>
+                                <div class="stat-label">Net Profit</div>
+                            </div>
+                        </div>
+                        <div class="stat-value currency" id="netProfit">MK 0</div>
+                        <div class="stat-change" id="profitChange">
+                            Revenue - Costs
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon yield">🌾</div>
+                            <div>
+                                <div class="stat-label">Total Yield</div>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalYield">0 kg</div>
+                        <div class="stat-change" id="yieldChange">
+                            Record your harvest
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3 class="chart-title">Field Performance</h3>
+                    <div class="field-cards" id="dashboardFields">
+                        <div class="empty-state">
+                            <div class="empty-icon">🌱</div>
+                            <div class="empty-title">No Fields Yet</div>
+                            <div class="empty-text">Start by adding your first field</div>
+                            <button class="btn btn-primary" onclick="showPage('fields')">Add Field</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fields Page -->
+            <div id="page-fields" class="page hidden">
+                <div class="page-header">
+                    <h1 class="page-title">Fields & Crops</h1>
+                    <p class="page-subtitle">Manage your farm fields and track crop lifecycles</p>
+                </div>
+                
+                <div class="action-bar">
+                    <button class="btn btn-primary" onclick="openAddFieldModal()">
+                        <span>+</span> Add New Field
+                    </button>
+                </div>
+                
+                <div class="field-cards" id="fieldsList">
+                    <!-- Fields will be rendered here -->
+                </div>
+            </div>
+            
+            <!-- Inputs Page -->
+            <div id="page-inputs" class="page hidden">
+                <div class="page-header">
+                    <h1 class="page-title">Inputs & Costs</h1>
+                    <p class="page-subtitle">Track seeds, fertilizer, chemicals, labour, and other expenses</p>
+                </div>
+                
+                <div class="action-bar">
+                    <button class="btn btn-primary" onclick="openAddInputModal()">
+                        <span>+</span> Record Input/Cost
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Field</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Quantity</th>
+                                <th>Cost (MK)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inputsTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                    No inputs recorded yet. Click "Record Input/Cost" to start tracking.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Harvest Page -->
+            <div id="page-harvest" class="page hidden">
+                <div class="page-header">
+                    <h1 class="page-title">Harvest & Yield</h1>
+                    <p class="page-subtitle">Record harvest data and track productivity</p>
+                </div>
+                
+                <div class="action-bar">
+                    <button class="btn btn-primary" onclick="openAddHarvestModal()">
+                        <span>+</span> Record Harvest
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Field</th>
+                                <th>Crop</th>
+                                <th>Quantity (kg)</th>
+                                <th>Yield/Hectare</th>
+                                <th>Quality</th>
+                            </tr>
+                        </thead>
+                        <tbody id="harvestTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                    No harvest recorded yet. Click "Record Harvest" to start tracking.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Sales Page -->
+            <div id="page-sales" class="page hidden">
+                <div class="page-header">
+                    <h1 class="page-title">Sales & Revenue</h1>
+                    <p class="page-subtitle">Track your sales and income from crops</p>
+                </div>
+                
+                <div class="action-bar">
+                    <button class="btn btn-primary" onclick="openAddSaleModal()">
+                        <span>+</span> Record Sale
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Field</th>
+                                <th>Crop</th>
+                                <th>Quantity (kg)</th>
+                                <th>Price/kg (MK)</th>
+                                <th>Total (MK)</th>
+                                <th>Buyer</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                    No sales recorded yet. Click "Record Sale" to start tracking.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Analytics Page -->
+            <div id="page-analytics" class="page hidden">
+                <div class="page-header">
+                    <h1 class="page-title">Analytics & Insights</h1>
+                    <p class="page-subtitle">Understand what's working and plan for next season</p>
+                </div>
+                
+                <div class="card-grid">
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem; color: var(--earth-dark);">Most Profitable Crop</h3>
+                        <div class="stat-value" id="topCrop" style="font-size: 1.5rem;">-</div>
+                        <p class="stat-label" id="topCropProfit"></p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem; color: var(--earth-dark);">Best Performing Field</h3>
+                        <div class="stat-value" id="topField" style="font-size: 1.5rem;">-</div>
+                        <p class="stat-label" id="topFieldMetric"></p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem; color: var(--earth-dark);">Average Yield/Ha</h3>
+                        <div class="stat-value" id="avgYield" style="font-size: 1.5rem;">0 kg</div>
+                        <p class="stat-label">Across all fields</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem; color: var(--earth-dark);">Profit Margin</h3>
+                        <div class="stat-value" id="profitMargin" style="font-size: 1.5rem;">0%</div>
+                        <p class="stat-label">(Revenue - Costs) / Revenue</p>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3 class="chart-title">Cost Breakdown by Category</h3>
+                    <div id="costBreakdown"></div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3 class="chart-title">Field Comparison</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Crop</th>
+                                    <th>Size (ha)</th>
+                                    <th>Total Costs</th>
+                                    <th>Revenue</th>
+                                    <th>Profit</th>
+                                    <th>Profit/Ha</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fieldComparisonBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Export Page -->
+            <div id="page-export" class="page hidden">
+                <div class="page-header">
+                    <h1 class="page-title">Export Data</h1>
+                    <p class="page-subtitle">Download your farm data for backup or external analysis</p>
+                </div>
+                
+                <div class="card" style="max-width: 600px;">
+                    <h3 style="margin-bottom: 1rem; color: var(--earth-dark);">Export Options</h3>
+                    <p style="margin-bottom: 1.5rem; color: var(--text-muted);">
+                        Download all your farm data in JSON format. You can use this to backup your data or open it in spreadsheet software.
+                    </p>
+                    
+                    <div style="display: flex; gap: 1rem; flex-direction: column;">
+                        <button class="btn btn-primary" onclick="exportData()">
+                            📥 Download All Data (JSON)
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearAllData()">
+                            🗑️ Clear All Data (Reset Farm)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Add Field Modal -->
+    <div id="addFieldModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Field</h2>
+                <button class="modal-close" onclick="closeModal('addFieldModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addFieldForm" class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Field Name *</label>
+                        <input type="text" class="form-input" name="fieldName" placeholder="e.g., North Field, Plot A" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Size (hectares) *</label>
+                            <input type="number" class="form-input" name="fieldSize" step="0.1" placeholder="e.g., 2.5" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Crop Type *</label>
+                            <select class="form-select" name="cropType" required>
+                                <option value="">Select crop...</option>
+                                <option value="Maize">Maize</option>
+                                <option value="Tobacco">Tobacco</option>
+                                <option value="Groundnuts">Groundnuts</option>
+                                <option value="Soya">Soya</option>
+                                <option value="Cotton">Cotton</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Planting Date</label>
+                        <input type="date" class="form-input" name="plantingDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Location/Description</label>
+                        <textarea class="form-textarea" name="fieldLocation" placeholder="Optional: describe location or any special notes"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addFieldModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveField()">Save Field</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Input Modal -->
+    <div id="addInputModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Record Input/Cost</h2>
+                <button class="modal-close" onclick="closeModal('addInputModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addInputForm" class="form-grid">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Date *</label>
+                            <input type="date" class="form-input" name="inputDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Field *</label>
+                            <select class="form-select" name="inputField" id="inputFieldSelect" required>
+                                <option value="">Select field...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Category *</label>
+                        <select class="form-select" name="inputCategory" required>
+                            <option value="">Select category...</option>
+                            <option value="Seeds">Seeds</option>
+                            <option value="Fertilizer">Fertilizer (Basal/Top Dressing)</option>
+                            <option value="Chemicals">Chemicals (Pesticides/Herbicides)</option>
+                            <option value="Labour">Labour (Planting/Weeding/Harvest)</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Equipment">Equipment/Tools</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description *</label>
+                        <input type="text" class="form-input" name="inputDescription" placeholder="e.g., 23:21:0+4S fertilizer, 50kg bag" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Quantity</label>
+                            <input type="text" class="form-input" name="inputQuantity" placeholder="e.g., 2 bags, 5 days">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Cost (MK) *</label>
+                            <input type="number" class="form-input" name="inputCost" step="0.01" placeholder="Enter amount" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addInputModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveInput()">Save Input</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Harvest Modal -->
+    <div id="addHarvestModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Record Harvest</h2>
+                <button class="modal-close" onclick="closeModal('addHarvestModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addHarvestForm" class="form-grid">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Date *</label>
+                            <input type="date" class="form-input" name="harvestDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Field *</label>
+                            <select class="form-select" name="harvestField" id="harvestFieldSelect" required>
+                                <option value="">Select field...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Quantity (kg) *</label>
+                            <input type="number" class="form-input" name="harvestQuantity" step="0.1" placeholder="Total weight in kg" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Quality</label>
+                            <select class="form-select" name="harvestQuality">
+                                <option value="">Select...</option>
+                                <option value="Premium">Premium/Grade A</option>
+                                <option value="Good">Good/Grade B</option>
+                                <option value="Fair">Fair/Grade C</option>
+                                <option value="Poor">Poor/Reject</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-textarea" name="harvestNotes" placeholder="Optional: moisture content, storage location, etc."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addHarvestModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveHarvest()">Save Harvest</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Sale Modal -->
+    <div id="addSaleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Record Sale</h2>
+                <button class="modal-close" onclick="closeModal('addSaleModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="addSaleForm" class="form-grid">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Date *</label>
+                            <input type="date" class="form-input" name="saleDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Field *</label>
+                            <select class="form-select" name="saleField" id="saleFieldSelect" required>
+                                <option value="">Select field...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Quantity Sold (kg) *</label>
+                            <input type="number" class="form-input" name="saleQuantity" step="0.1" placeholder="Amount sold" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Price per kg (MK) *</label>
+                            <input type="number" class="form-input" name="salePrice" step="0.01" placeholder="Price per kilogram" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Buyer</label>
+                        <input type="text" class="form-input" name="saleBuyer" placeholder="e.g., ADMARC, Trader name, Export company">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-textarea" name="saleNotes" placeholder="Optional: payment terms, transport costs, etc."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addSaleModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSale()">Save Sale</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Offline Indicator -->
+    <div class="offline-badge" id="offlineBadge">
+        <span>📵</span> Working Offline
+    </div>
+    
+    <script>
+        // Data Storage (localStorage for offline capability)
+        const DB_KEY = 'farmManagerData';
+        
+        let farmData = {
+            fields: [],
+            inputs: [],
+            harvests: [],
+            sales: [],
+            version: '1.0'
+        };
+        
+        // Initialize app
+        function initApp() {
+            loadData();
+            setupNavigation();
+            updateDashboard();
+            renderFields();
+            renderInputs();
+            renderHarvests();
+            renderSales();
+            updateAnalytics();
+            checkOnlineStatus();
+            
+            // Set default dates to today
+            document.querySelectorAll('input[type="date"]').forEach(input => {
+                if (!input.value) {
+                    input.value = new Date().toISOString().split('T')[0];
+                }
+            });
+        }
+        
+        // Data Management
+        function loadData() {
+            const stored = localStorage.getItem(DB_KEY);
+            if (stored) {
+                try {
+                    farmData = JSON.parse(stored);
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                }
+            }
+        }
+        
+        function saveData() {
+            localStorage.setItem(DB_KEY, JSON.stringify(farmData));
+        }
+        
+        function exportData() {
+            const dataStr = JSON.stringify(farmData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `farm-data-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function clearAllData() {
+            if (confirm('Are you sure you want to delete ALL farm data? This cannot be undone.')) {
+                if (confirm('Final confirmation: This will permanently delete all fields, inputs, harvests, and sales data.')) {
+                    farmData = { fields: [], inputs: [], harvests: [], sales: [], version: '1.0' };
+                    saveData();
+                    location.reload();
+                }
+            }
+        }
+        
+        // Navigation
+        function setupNavigation() {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = link.dataset.page;
+                    showPage(page);
+                    
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                });
+            });
+        }
+        
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
+            document.getElementById(`page-${pageName}`).classList.remove('hidden');
+            
+            // Update renders when switching pages
+            if (pageName === 'dashboard') updateDashboard();
+            if (pageName === 'fields') renderFields();
+            if (pageName === 'inputs') renderInputs();
+            if (pageName === 'harvest') renderHarvests();
+            if (pageName === 'sales') renderSales();
+            if (pageName === 'analytics') updateAnalytics();
+        }
+        
+        // Modal Management
+        function openAddFieldModal() {
+            document.getElementById('addFieldModal').classList.add('active');
+        }
+        
+        function openAddInputModal() {
+            populateFieldSelects();
+            document.getElementById('addInputModal').classList.add('active');
+        }
+        
+        function openAddHarvestModal() {
+            populateFieldSelects();
+            document.getElementById('addHarvestModal').classList.add('active');
+        }
+        
+        function openAddSaleModal() {
+            populateFieldSelects();
+            document.getElementById('addSaleModal').classList.add('active');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        function populateFieldSelects() {
+            const selects = ['inputFieldSelect', 'harvestFieldSelect', 'saleFieldSelect'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">Select field...</option>';
+                farmData.fields.forEach((field, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${field.name} (${field.crop})`;
+                    select.appendChild(option);
+                });
+            });
+        }
+        
+        // Field Management
+        function saveField() {
+            const form = document.getElementById('addFieldForm');
+            const formData = new FormData(form);
+            
+            const field = {
+                id: Date.now(),
+                name: formData.get('fieldName'),
+                size: parseFloat(formData.get('fieldSize')),
+                crop: formData.get('cropType'),
+                plantingDate: formData.get('plantingDate'),
+                location: formData.get('fieldLocation'),
+                createdAt: new Date().toISOString()
+            };
+            
+            farmData.fields.push(field);
+            saveData();
+            
+            form.reset();
+            closeModal('addFieldModal');
+            renderFields();
+            updateDashboard();
+        }
+        
+        function renderFields() {
+            const container = document.getElementById('fieldsList');
+            const dashboardContainer = document.getElementById('dashboardFields');
+            
+            if (farmData.fields.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🌱</div>
+                        <div class="empty-title">No Fields Yet</div>
+                        <div class="empty-text">Add your first field to start tracking your farm</div>
+                        <button class="btn btn-primary" onclick="openAddFieldModal()">Add Field</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            farmData.fields.forEach((field, index) => {
+                const fieldCosts = calculateFieldCosts(index);
+                const fieldRevenue = calculateFieldRevenue(index);
+                const fieldYield = calculateFieldYield(index);
+                const profit = fieldRevenue - fieldCosts;
+                
+                const yieldPerHa = field.size > 0 ? (fieldYield / field.size).toFixed(0) : 0;
+                
+                html += `
+                    <div class="field-card">
+                        <div class="field-header">
+                            <div class="field-name">${field.name}</div>
+                            <div class="field-crop">${field.crop} • ${field.size} ha</div>
+                        </div>
+                        <div class="field-body">
+                            <div class="field-stat">
+                                <span class="field-stat-label">Total Costs</span>
+                                <span class="field-stat-value currency">MK ${formatNumber(fieldCosts)}</span>
+                            </div>
+                            <div class="field-stat">
+                                <span class="field-stat-label">Revenue</span>
+                                <span class="field-stat-value currency">MK ${formatNumber(fieldRevenue)}</span>
+                            </div>
+                            <div class="field-stat">
+                                <span class="field-stat-label">Profit</span>
+                                <span class="field-stat-value currency ${profit >= 0 ? 'text-success' : 'text-warning'}">
+                                    MK ${formatNumber(profit)}
+                                </span>
+                            </div>
+                            <div class="field-stat">
+                                <span class="field-stat-label">Yield/Ha</span>
+                                <span class="field-stat-value">${formatNumber(yieldPerHa)} kg</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            dashboardContainer.innerHTML = html;
+        }
+        
+        // Input Management
+        function saveInput() {
+            const form = document.getElementById('addInputForm');
+            const formData = new FormData(form);
+            
+            const input = {
+                id: Date.now(),
+                date: formData.get('inputDate'),
+                fieldIndex: parseInt(formData.get('inputField')),
+                category: formData.get('inputCategory'),
+                description: formData.get('inputDescription'),
+                quantity: formData.get('inputQuantity'),
+                cost: parseFloat(formData.get('inputCost')),
+                createdAt: new Date().toISOString()
+            };
+            
+            farmData.inputs.push(input);
+            saveData();
+            
+            form.reset();
+            closeModal('addInputModal');
+            renderInputs();
+            updateDashboard();
+            updateAnalytics();
+        }
+        
+        function renderInputs() {
+            const tbody = document.getElementById('inputsTableBody');
+            
+            if (farmData.inputs.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            No inputs recorded yet. Click "Record Input/Cost" to start tracking.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            const sortedInputs = [...farmData.inputs].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedInputs.forEach(input => {
+                const field = farmData.fields[input.fieldIndex];
+                html += `
+                    <tr>
+                        <td>${formatDate(input.date)}</td>
+                        <td>${field ? field.name : 'N/A'}</td>
+                        <td>${input.category}</td>
+                        <td>${input.description}</td>
+                        <td>${input.quantity || '-'}</td>
+                        <td class="currency">${formatNumber(input.cost)}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        // Harvest Management
+        function saveHarvest() {
+            const form = document.getElementById('addHarvestForm');
+            const formData = new FormData(form);
+            
+            const harvest = {
+                id: Date.now(),
+                date: formData.get('harvestDate'),
+                fieldIndex: parseInt(formData.get('harvestField')),
+                quantity: parseFloat(formData.get('harvestQuantity')),
+                quality: formData.get('harvestQuality'),
+                notes: formData.get('harvestNotes'),
+                createdAt: new Date().toISOString()
+            };
+            
+            farmData.harvests.push(harvest);
+            saveData();
+            
+            form.reset();
+            closeModal('addHarvestModal');
+            renderHarvests();
+            updateDashboard();
+        }
+        
+        function renderHarvests() {
+            const tbody = document.getElementById('harvestTableBody');
+            
+            if (farmData.harvests.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            No harvest recorded yet. Click "Record Harvest" to start tracking.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            const sortedHarvests = [...farmData.harvests].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedHarvests.forEach(harvest => {
+                const field = farmData.fields[harvest.fieldIndex];
+                const yieldPerHa = field && field.size > 0 ? (harvest.quantity / field.size).toFixed(0) : 0;
+                
+                html += `
+                    <tr>
+                        <td>${formatDate(harvest.date)}</td>
+                        <td>${field ? field.name : 'N/A'}</td>
+                        <td>${field ? field.crop : 'N/A'}</td>
+                        <td>${formatNumber(harvest.quantity)}</td>
+                        <td>${formatNumber(yieldPerHa)} kg/ha</td>
+                        <td>${harvest.quality || '-'}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        // Sales Management
+        function saveSale() {
+            const form = document.getElementById('addSaleForm');
+            const formData = new FormData(form);
+            
+            const quantity = parseFloat(formData.get('saleQuantity'));
+            const price = parseFloat(formData.get('salePrice'));
+            
+            const sale = {
+                id: Date.now(),
+                date: formData.get('saleDate'),
+                fieldIndex: parseInt(formData.get('saleField')),
+                quantity: quantity,
+                pricePerKg: price,
+                total: quantity * price,
+                buyer: formData.get('saleBuyer'),
+                notes: formData.get('saleNotes'),
+                createdAt: new Date().toISOString()
+            };
+            
+            farmData.sales.push(sale);
+            saveData();
+            
+            form.reset();
+            closeModal('addSaleModal');
+            renderSales();
+            updateDashboard();
+            updateAnalytics();
+        }
+        
+        function renderSales() {
+            const tbody = document.getElementById('salesTableBody');
+            
+            if (farmData.sales.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            No sales recorded yet. Click "Record Sale" to start tracking.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            const sortedSales = [...farmData.sales].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedSales.forEach(sale => {
+                const field = farmData.fields[sale.fieldIndex];
+                
+                html += `
+                    <tr>
+                        <td>${formatDate(sale.date)}</td>
+                        <td>${field ? field.name : 'N/A'}</td>
+                        <td>${field ? field.crop : 'N/A'}</td>
+                        <td>${formatNumber(sale.quantity)}</td>
+                        <td class="currency">${formatNumber(sale.pricePerKg)}</td>
+                        <td class="currency">${formatNumber(sale.total)}</td>
+                        <td>${sale.buyer || '-'}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        // Calculations
+        function calculateFieldCosts(fieldIndex) {
+            return farmData.inputs
+                .filter(i => i.fieldIndex === fieldIndex)
+                .reduce((sum, i) => sum + i.cost, 0);
+        }
+        
+        function calculateFieldRevenue(fieldIndex) {
+            return farmData.sales
+                .filter(s => s.fieldIndex === fieldIndex)
+                .reduce((sum, s) => sum + s.total, 0);
+        }
+        
+        function calculateFieldYield(fieldIndex) {
+            return farmData.harvests
+                .filter(h => h.fieldIndex === fieldIndex)
+                .reduce((sum, h) => sum + h.quantity, 0);
+        }
+        
+        function calculateTotalCosts() {
+            return farmData.inputs.reduce((sum, i) => sum + i.cost, 0);
+        }
+        
+        function calculateTotalRevenue() {
+            return farmData.sales.reduce((sum, s) => sum + s.total, 0);
+        }
+        
+        function calculateTotalYield() {
+            return farmData.harvests.reduce((sum, h) => sum + h.quantity, 0);
+        }
+        
+        // Dashboard Updates
+        function updateDashboard() {
+            const totalRevenue = calculateTotalRevenue();
+            const totalCosts = calculateTotalCosts();
+            const netProfit = totalRevenue - totalCosts;
+            const totalYield = calculateTotalYield();
+            
+            document.getElementById('totalRevenue').textContent = `MK ${formatNumber(totalRevenue)}`;
+            document.getElementById('totalCosts').textContent = `MK ${formatNumber(totalCosts)}`;
+            document.getElementById('netProfit').textContent = `MK ${formatNumber(netProfit)}`;
+            document.getElementById('totalYield').textContent = `${formatNumber(totalYield)} kg`;
+            
+            // Update change indicators
+            const profitChange = document.getElementById('profitChange');
+            if (netProfit > 0) {
+                profitChange.innerHTML = '<span>✓</span> Profitable';
+                profitChange.className = 'stat-change positive';
+            } else if (netProfit < 0) {
+                profitChange.innerHTML = '<span>!</span> Loss';
+                profitChange.className = 'stat-change negative';
+            } else {
+                profitChange.innerHTML = 'Revenue - Costs';
+                profitChange.className = 'stat-change';
+            }
+        }
+        
+        // Analytics
+        function updateAnalytics() {
+            // Calculate metrics for each field
+            const fieldMetrics = farmData.fields.map((field, index) => {
+                const costs = calculateFieldCosts(index);
+                const revenue = calculateFieldRevenue(index);
+                const profit = revenue - costs;
+                const profitPerHa = field.size > 0 ? profit / field.size : 0;
+                
+                return {
+                    field,
+                    index,
+                    costs,
+                    revenue,
+                    profit,
+                    profitPerHa
+                };
+            });
+            
+            // Most profitable crop
+            const cropProfits = {};
+            fieldMetrics.forEach(m => {
+                if (!cropProfits[m.field.crop]) {
+                    cropProfits[m.field.crop] = 0;
+                }
+                cropProfits[m.field.crop] += m.profit;
+            });
+            
+            const topCrop = Object.entries(cropProfits).sort((a, b) => b[1] - a[1])[0];
+            if (topCrop) {
+                document.getElementById('topCrop').textContent = topCrop[0];
+                document.getElementById('topCropProfit').textContent = `MK ${formatNumber(topCrop[1])} profit`;
+            }
+            
+            // Best performing field
+            const topField = fieldMetrics.sort((a, b) => b.profitPerHa - a.profitPerHa)[0];
+            if (topField) {
+                document.getElementById('topField').textContent = topField.field.name;
+                document.getElementById('topFieldMetric').textContent = `MK ${formatNumber(topField.profitPerHa)}/ha profit`;
+            }
+            
+            // Average yield
+            const totalYield = calculateTotalYield();
+            const totalArea = farmData.fields.reduce((sum, f) => sum + f.size, 0);
+            const avgYield = totalArea > 0 ? totalYield / totalArea : 0;
+            document.getElementById('avgYield').textContent = `${formatNumber(avgYield)} kg`;
+            
+            // Profit margin
+            const revenue = calculateTotalRevenue();
+            const margin = revenue > 0 ? ((revenue - calculateTotalCosts()) / revenue * 100) : 0;
+            document.getElementById('profitMargin').textContent = `${margin.toFixed(1)}%`;
+            
+            // Cost breakdown
+            const costsByCategory = {};
+            farmData.inputs.forEach(input => {
+                if (!costsByCategory[input.category]) {
+                    costsByCategory[input.category] = 0;
+                }
+                costsByCategory[input.category] += input.cost;
+            });
+            
+            let costHtml = '<div style="display: flex; flex-direction: column; gap: 1rem;">';
+            Object.entries(costsByCategory).sort((a, b) => b[1] - a[1]).forEach(([category, amount]) => {
+                const totalCosts = calculateTotalCosts();
+                const percentage = totalCosts > 0 ? (amount / totalCosts * 100) : 0;
+                costHtml += `
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="font-weight: 500;">${category}</span>
+                            <span class="currency" style="font-weight: 600;">MK ${formatNumber(amount)} (${percentage.toFixed(1)}%)</span>
+                        </div>
+                        <div style="background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="background: var(--earth-main); width: ${percentage}%; height: 100%;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            costHtml += '</div>';
+            document.getElementById('costBreakdown').innerHTML = costHtml;
+            
+            // Field comparison table
+            const tbody = document.getElementById('fieldComparisonBody');
+            let tableHtml = '';
+            
+            fieldMetrics.forEach(m => {
+                const profitPerHa = m.field.size > 0 ? m.profit / m.field.size : 0;
+                tableHtml += `
+                    <tr>
+                        <td>${m.field.name}</td>
+                        <td>${m.field.crop}</td>
+                        <td>${m.field.size}</td>
+                        <td class="currency">MK ${formatNumber(m.costs)}</td>
+                        <td class="currency">MK ${formatNumber(m.revenue)}</td>
+                        <td class="currency ${m.profit >= 0 ? 'text-success' : 'text-warning'}">
+                            MK ${formatNumber(m.profit)}
+                        </td>
+                        <td class="currency">MK ${formatNumber(profitPerHa)}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = tableHtml || '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">No field data available</td></tr>';
+        }
+        
+        // Utilities
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-MW').format(num || 0);
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+        
+        function checkOnlineStatus() {
+            const badge = document.getElementById('offlineBadge');
+            
+            function updateStatus() {
+                if (!navigator.onLine) {
+                    badge.classList.add('show');
+                } else {
+                    badge.classList.remove('show');
+                }
+            }
+            
+            window.addEventListener('online', updateStatus);
+            window.addEventListener('offline', updateStatus);
+            updateStatus();
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
